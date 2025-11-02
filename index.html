@@ -1,0 +1,143 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<title>RLGPT</title>
+<style>
+  /* Reset margins and set full height */
+  body, html { 
+    margin: 0; 
+    padding: 0; 
+    height: 100%; 
+    font-family: Arial, sans-serif; 
+    background: #f5f5f5; /* page background color */
+  }
+
+  /* Main chat container: centers content and uses full height */
+  #chat-container { 
+    display: flex; 
+    flex-direction: column; 
+    height: 100%; 
+    max-width: 800px; 
+    margin: 0 auto; 
+  }
+
+  /* Message area: scrollable, vertical stack */
+  #messages { 
+    flex: 1; 
+    overflow-y: auto; 
+    padding: 20px; 
+    display: flex; 
+    flex-direction: column; 
+    gap: 10px; /* space between messages */
+  }
+
+  /* Base message style */
+  .message { 
+    padding: 10px 15px; 
+    border-radius: 15px; 
+    max-width: 70%; 
+    word-wrap: break-word; 
+  }
+
+  /* User message styling (green, right side) */
+  .user { 
+    align-self: flex-end; 
+    background: #4CAF50; 
+    color: white; 
+  }
+
+  /* AI message styling (gray, left side) */
+  .ai { 
+    align-self: flex-start; 
+    background: #e0e0e0; 
+    color: black; 
+  }
+
+  /* Input area fixed at bottom with border and padding */
+  #input-area { 
+    display: flex; 
+    padding: 10px; 
+    border-top: 1px solid #ccc; 
+    background: #fff; 
+  }
+
+  /* Input box style */
+  #input-area input { 
+    flex: 1; 
+    padding: 10px; 
+    border-radius: 20px; 
+    border: 1px solid #ccc; 
+    outline: none; 
+  }
+
+  /* Button style */
+  #input-area button { 
+    margin-left: 10px; 
+    padding: 10px 20px; 
+    border-radius: 20px; 
+    border: none; 
+    background: #4CAF50; 
+    color: white; 
+    cursor: pointer; 
+  }
+
+  /* Button hover effect */
+  #input-area button:hover { 
+    background: #45a049; 
+  }
+</style>
+</head>
+<body>
+<div id="chat-container">
+  <!-- Messages will appear here -->
+  <div id="messages"></div>
+
+  <!-- User input area -->
+  <div id="input-area">
+    <input type="text" id="option" placeholder="Enter options separated by commas">
+    <button onclick="sendMessage()">Decide</button>
+  </div>
+</div>
+
+<script>
+async function sendMessage() {
+  const input = document.getElementById("option");
+  const options = input.value.split(","); // Split user input by commas
+
+  if (!options[0]) return; // Do nothing if input is empty
+
+  const messages = document.getElementById("messages");
+
+  // --- Show user message ---
+  const userMsg = document.createElement("div");
+  userMsg.className = "message user"; // green bubble on right
+  userMsg.textContent = options.join(", "); // display typed options
+  messages.appendChild(userMsg);
+
+  // Scroll to bottom
+  messages.scrollTop = messages.scrollHeight;
+
+  // --- Send data to backend ---
+  const response = await fetch("/decide", {
+    method: "POST",
+    headers: {"Content-Type": "application/json"},
+    body: JSON.stringify({options: options, criteria: null}) // send options & criteria
+  });
+
+  const data = await response.json();
+
+  // --- Show AI response ---
+  const aiMsg = document.createElement("div");
+  aiMsg.className = "message ai"; // gray bubble on left
+  aiMsg.textContent = data.choice; // AI decision
+  messages.appendChild(aiMsg);
+
+  // Scroll to bottom
+  messages.scrollTop = messages.scrollHeight;
+
+  input.value = ""; // Clear input box
+}
+</script>
+</body>
+</html>
